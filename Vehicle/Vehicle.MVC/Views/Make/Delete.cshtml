@@ -1,0 +1,30 @@
+﻿@model Vehicle.Common.ViewModels.VehicleMakeViewModel
+
+<h2>Delete Vehicle Make</h2>
+
+@if (Model == null)
+{
+    <p>The vehicle make could not be found.</p>
+}
+else
+{
+    <h3>Are you sure you want to delete the vehicle make "<strong>@Model.Name</strong>"?</h3>
+
+    <div class="form-group">
+        <label>Make Name</label>
+        <p>@Model.Name</p>
+    </div>
+
+    <div class="form-group">
+        <label>Abbreviation</label>
+        <p>@Model.Abrv</p>
+    </div>
+
+    <form asp-action="Delete" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+}

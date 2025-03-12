@@ -1,32 +1,50 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Ninject;
+using Ninject.Extensions.DependencyInjection;
+using Ninject.Web.Common;
 using Vehicle.Service.Data;
+using Vehicle.Service.Mappings;
+using Vehicle.Service.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddControllersWithViews();
-builder.Services.AddLogging();
-builder.Services.AddDbContext<VehicleDbContext>(options =>
+builder.Host.UseServiceProviderFactory(new NinjectServiceProviderFactory());
+
+
+builder.Host.ConfigureContainer<IKernel>(kernel =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    
+    kernel.Bind<IVehicleService>().To<VehicleService>().InRequestScope();
     
 });
+
+builder.Services.AddControllersWithViews();
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+builder.Services.AddDbContext<VehicleDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")),ServiceLifetime.Scoped);
+
+
+builder.Services.AddControllersWithViews();
+
+
+builder.Services.AddLogging();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.UseAuthorization();
+
 
 app.MapControllerRoute(
     name: "default",

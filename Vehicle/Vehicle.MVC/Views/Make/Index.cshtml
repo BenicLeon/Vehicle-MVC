@@ -1,0 +1,58 @@
+﻿@model List<Vehicle.Common.ViewModels.VehicleMakeViewModel>
+
+<h2>Vehicle Makes</h2>
+
+<form asp-action="Index" method="get">
+    <div class="form-group">
+        <input name="searchString" value="@ViewData["SearchString"]" />
+        <input type="submit" value="Search" />
+    </div>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["NameSortParam"]"
+                   asp-route-searchString="@ViewData["SearchString"]">Name</a>
+            </th>
+            <th>
+                <a asp-action="Index"
+                   asp-route-sortOrder="@ViewData["AbrvSortParam"]"
+                   asp-route-searchString="@ViewData["SearchString"]">Abbreviation</a>
+            </th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var make in Model)
+        {
+            <tr>
+                <td>@make.Name</td>
+                <td>@make.Abrv</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@make.Id">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@make.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@{
+    var prevDisabled = (int)ViewData["CurrentPage"] == 1 ? "disabled" : "";
+    var nextDisabled = (int)ViewData["CurrentPage"] == (int)ViewData["TotalPages"] ? "disabled" : "";
+}
+
+<a asp-action="Index"
+   asp-route-pageNumber="@((int)ViewData["CurrentPage"] - 1)"
+   asp-route-sortOrder="@ViewData["CurrentSort"]"
+   asp-route-searchString="@ViewData["SearchString"]"
+   class="btn @prevDisabled">Previous</a>
+
+<a asp-action="Index"
+   asp-route-pageNumber="@((int)ViewData["CurrentPage"] + 1)"
+   asp-route-sortOrder="@ViewData["CurrentSort"]"
+   asp-route-searchString="@ViewData["SearchString"]"
+   class="btn @nextDisabled">Next</a>
