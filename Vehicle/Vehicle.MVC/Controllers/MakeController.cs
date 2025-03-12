@@ -11,7 +11,7 @@ using AutoMapper;
 
 namespace Vehicle.MVC.Controllers
 {
-    public class MakesController : Controller
+    public class MakeController : Controller
     {
         private readonly IVehicleService _service;
 
@@ -19,14 +19,14 @@ namespace Vehicle.MVC.Controllers
 
         private const int PageSize = 3;
 
-        public MakesController(IVehicleService vehicleService, IMapper mapper)
+        public MakeController(IVehicleService vehicleService, IMapper mapper)
         {
             _service = vehicleService;
             _mapper = mapper;
             
         }
 
-
+        #region Makes Crud
         public async Task<IActionResult> Index(string searchString, string sortOrder, int pageNumber = 1)
         {
             var result = await _service.GetMakesAsync(searchString, sortOrder, pageNumber, PageSize);
@@ -123,7 +123,7 @@ namespace Vehicle.MVC.Controllers
             
             return NotFound();
         }
-
-
+        #endregion
+        
     }
 }
