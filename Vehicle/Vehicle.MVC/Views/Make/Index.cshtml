@@ -1,7 +1,7 @@
 ﻿@model List<Vehicle.Common.ViewModels.VehicleMakeViewModel>
 
 <h2>Vehicle Makes</h2>
-
+<a class="nav-link text-dark" asp-area="" asp-controller="Make" asp-action="Create">Create new Make</a>
 <form asp-action="Index" method="get">
     <div class="form-group">
         <input name="searchString" value="@ViewData["SearchString"]" />

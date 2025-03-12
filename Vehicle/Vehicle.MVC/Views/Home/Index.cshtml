@@ -2,7 +2,54 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container text-center py-5">
+    <h1 class="display-4 fw-bold text-primary">Welcome to Vehicle Hub</h1>
+    <p class="lead text-muted mb-4">
+        Discover and manage your vehicle makes and models with ease.
+    </p>
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            
+            <a asp-controller="Model"
+               asp-action="Index"
+               class="btn btn-primary btn-lg mt-3">
+                Explore Models
+            </a>
+            <a asp-controller="Make"
+               asp-action="Index"
+               class="btn btn-outline-secondary btn-lg mt-3 ms-2">
+                View Makes
+            </a>
+        </div>
+    </div>
 </div>
+
+@section Styles {
+    <style>
+        .text-primary {
+            color: #007bff !important;
+        }
+
+        .text-success {
+            color: #28a745 !important;
+        }
+
+        .btn-lg {
+            padding: 0.75rem 1.5rem;
+            font-size: 1.25rem;
+        }
+
+        .py-5 {
+            padding-top: 5rem !important;
+            padding-bottom: 5rem !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            console.log("Welcome to Vehicle Hub!");
+        });
+    </script>
+}

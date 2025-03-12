@@ -1,104 +1,112 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Vehicle.Service.Services;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Vehicle.Common;
 using Vehicle.Common.ViewModels;
 using Vehicle.Service.DTOs;
-using AutoMapper;
-using Microsoft.AspNetCore.Mvc.Rendering;
-
-
-
-
+using Vehicle.Service.Services;
 
 namespace Vehicle.MVC.Controllers
 {
     public class ModelController : Controller
     {
         private readonly IVehicleService _service;
-
         private readonly IMapper _mapper;
-
         private const int PageSize = 3;
 
         public ModelController(IVehicleService vehicleService, IMapper mapper)
         {
-            _service = vehicleService;
-            _mapper = mapper;
-
+            _service = vehicleService ?? throw new ArgumentNullException(nameof(vehicleService));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        #region Model Crud
-        public async Task<IActionResult> Index(int? makeId, string searchString, string sortOrder = "name", int pageNumber = 1)
+        #region Model CRUD
+
+        public async Task<IActionResult> Index(int? makeId, string? searchString, string sortOrder = "name", int pageNumber = 1)
         {
-            var modelsResult = await _service.GetModelsAsync(makeId, searchString, sortOrder, pageNumber, PageSize);
-            var makesResult = await _service.GetMakesAsync();
-
-            var viewModels = modelsResult.Items.Select(m => new VehicleModelViewModel
+            try
             {
-                Id = m.Id,
-                MakeId = m.MakeId,
-                Name = m.Name,
-                Abrv = m.Abrv,
-                MakeName = makesResult.Items.FirstOrDefault(make => make.Id == m.MakeId)?.Name ?? "Unknown"
+                var modelsResult = await _service.GetModelsAsync(makeId, searchString, sortOrder, pageNumber, PageSize);
+                var makesResult = await _service.GetMakesAsync();
 
-            }).ToList();
-               
-            ViewData["CurrentSort"] = sortOrder;
-            ViewData["NameSortParam"] = sortOrder == "name" ? "name_desc" : "name";
-            ViewData["AbrvSortParam"] = sortOrder == "abrv" ? "abrv_desc" : "abrv";
-            ViewData["SearchString"] = searchString;
-            ViewData["CurrentPage"] = modelsResult.PageNumber;
-            ViewData["TotalPages"] = modelsResult.TotalPages;
-            ViewData["MakeId"] = makeId;
+                var viewModels = modelsResult.Items
+                    .Select(m => new VehicleModelViewModel
+                    {
+                        Id = m.Id,
+                        MakeId = m.MakeId,
+                        Name = m.Name,
+                        Abrv = m.Abrv,
+                        MakeName = makesResult.Items.FirstOrDefault(make => make.Id == m.MakeId)?.Name ?? "Unknown"
+                    })
+                    .ToList();
 
-            
-            ViewData["Makes"] = new SelectList(makesResult.Items, "Id", "Name");
+                SetViewData(modelsResult, sortOrder, searchString, makeId);
+                ViewData["Makes"] = new SelectList(makesResult.Items, "Id", "Name");
 
-            return View(viewModels);
+                return View(viewModels);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving models.");
+            }
         }
-
-
 
         public async Task<IActionResult> Create()
         {
-            var makes = await _service.GetMakesAsync();
-            ViewBag.Makes = new SelectList(makes.Items, "Id", "Name");
-            return View();
+            try
+            {
+                await PopulateMakesDropdownAsync();
+                return View(new VehicleModelViewModel());
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while loading the create page.");
+            }
         }
 
-        // POST: Model/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(VehicleModelViewModel viewModel)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+            {
+                await PopulateMakesDropdownAsync(viewModel.MakeId);
+                return View(viewModel);
+            }
+
+            try
             {
                 var modelDto = _mapper.Map<VehicleModelDTO>(viewModel);
                 await _service.CreateModelAsync(modelDto);
                 return RedirectToAction(nameof(Index));
             }
-
-            var makes = await _service.GetMakesAsync();
-            ViewBag.Makes = new SelectList(makes.Items, "Id", "Name", viewModel.MakeId);
-            return View(viewModel);
+            catch (Exception)
+            {
+                await PopulateMakesDropdownAsync(viewModel.MakeId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while creating the model.");
+            }
         }
 
-        // GET: Model/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var modelDto = await _service.GetModelByIdAsync(id);
-            if (modelDto == null)
+            try
             {
-                return NotFound();
-            }
+                var modelDto = await _service.GetModelByIdAsync(id);
+                if (modelDto == null)
+                {
+                    return NotFound();
+                }
 
-            var viewModel = _mapper.Map<VehicleModelViewModel>(modelDto);
-            var makes = await _service.GetMakesAsync();
-            ViewBag.Makes = new SelectList(makes.Items, "Id", "Name", viewModel.MakeId);
-            return View(viewModel);
+                var viewModel = _mapper.Map<VehicleModelViewModel>(modelDto);
+                await PopulateMakesDropdownAsync(viewModel.MakeId);
+                return View(viewModel);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the model for editing.");
+            }
         }
 
-        // POST: Model/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, VehicleModelViewModel viewModel)
@@ -108,40 +116,80 @@ namespace Vehicle.MVC.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+            {
+                await PopulateMakesDropdownAsync(viewModel.MakeId);
+                return View(viewModel);
+            }
+
+            try
             {
                 var modelDto = _mapper.Map<VehicleModelDTO>(viewModel);
                 await _service.UpdateModelAsync(modelDto);
                 return RedirectToAction(nameof(Index));
             }
-
-            var makes = await _service.GetMakesAsync();
-            ViewBag.Makes = new SelectList(makes.Items, "Id", "Name", viewModel.MakeId);
-            return View(viewModel);
+            catch (Exception)
+            {
+                await PopulateMakesDropdownAsync(viewModel.MakeId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the model.");
+            }
         }
 
-        // GET: Model/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var modelDto = await _service.GetModelByIdAsync(id);
-            if (modelDto == null)
+            try
             {
-                return NotFound();
-            }
+                var modelDto = await _service.GetModelByIdAsync(id);
+                if (modelDto == null)
+                {
+                    return NotFound();
+                }
 
-            var viewModel = _mapper.Map<VehicleModelViewModel>(modelDto);
-            return View(viewModel);
+                var viewModel = _mapper.Map<VehicleModelViewModel>(modelDto);
+                return View(viewModel);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the model for deletion.");
+            }
         }
 
-        // POST: Model/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await _service.DeleteModelAsync(id);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                var success = await _service.DeleteModelAsync(id);
+                return success ? RedirectToAction(nameof(Index)) : NotFound();
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while deleting the model.");
+            }
         }
+
         #endregion
 
+        #region Private Helpers
+
+        private void SetViewData(PagedResult<VehicleModelDTO> result, string sortOrder, string? searchString, int? makeId)
+        {
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NameSortParam"] = sortOrder == "name" ? "name_desc" : "name";
+            ViewData["AbrvSortParam"] = sortOrder == "abrv" ? "abrv_desc" : "abrv";
+            ViewData["SearchString"] = searchString;
+            ViewData["CurrentPage"] = result.PageNumber;
+            ViewData["TotalPages"] = result.TotalPages;
+            ViewData["MakeId"] = makeId;
+        }
+
+        private async Task PopulateMakesDropdownAsync(int? selectedMakeId = null)
+        {
+            var makes = await _service.GetMakesAsync();
+            ViewBag.Makes = new SelectList(makes.Items, "Id", "Name", selectedMakeId);
+        }
+
+        #endregion
     }
 }

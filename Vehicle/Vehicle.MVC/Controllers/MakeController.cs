@@ -1,129 +1,161 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Vehicle.Service.Services;
+using Vehicle.Common;
 using Vehicle.Common.ViewModels;
 using Vehicle.Service.DTOs;
-using AutoMapper;
-
-
-
-
+using Vehicle.Service.Services;
 
 namespace Vehicle.MVC.Controllers
 {
     public class MakeController : Controller
     {
         private readonly IVehicleService _service;
-
         private readonly IMapper _mapper;
-
         private const int PageSize = 3;
 
         public MakeController(IVehicleService vehicleService, IMapper mapper)
         {
-            _service = vehicleService;
-            _mapper = mapper;
-            
+            _service = vehicleService ?? throw new ArgumentNullException(nameof(vehicleService));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        #region Makes Crud
-        public async Task<IActionResult> Index(string searchString, string sortOrder, int pageNumber = 1)
+        #region Make CRUD
+
+        public async Task<IActionResult> Index(string? searchString, string? sortOrder, int pageNumber = 1)
         {
-            var result = await _service.GetMakesAsync(searchString, sortOrder, pageNumber, PageSize);
+            try
+            {
+                var result = await _service.GetMakesAsync(searchString, sortOrder, pageNumber, PageSize);
+                var viewModels = _mapper.Map<List<VehicleMakeViewModel>>(result.Items);
 
-            
-            var viewModels = _mapper.Map<List<VehicleMakeViewModel>>(result.Items);
-
-            ViewData["CurrentSort"] = sortOrder;
-            ViewData["NameSortParam"] = sortOrder == "name" ? "name_desc" : "name";
-            ViewData["AbrvSortParam"] = sortOrder == "abrv" ? "abrv_desc" : "abrv";
-            ViewData["SearchString"] = searchString;
-            ViewData["CurrentPage"] = result.PageNumber;
-            ViewData["TotalPages"] = result.TotalPages;
-
-            return View(viewModels);
+                SetViewData(result, sortOrder, searchString);
+                return View(viewModels);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving makes.");
+            }
         }
 
-
-        public ActionResult Create()
+        public IActionResult Create()
         {
-            return View();
+            return View(new VehicleMakeViewModel());
         }
 
-        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(VehicleMakeViewModel makeViewModel)
         {
-            
-                if (ModelState.IsValid)
-                {
-                
-                var makeDTO = _mapper.Map<VehicleMakeDTO>(makeViewModel);
-                await _service.CreateMakeAsync(makeDTO);
-                return RedirectToAction(nameof(Index));
-                
-                }
-            
+            if (!ModelState.IsValid)
+            {
                 return View(makeViewModel);
-            
+            }
+
+            try
+            {
+                var makeDto = _mapper.Map<VehicleMakeDTO>(makeViewModel);
+                await _service.CreateMakeAsync(makeDto);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while creating the make.");
+            }
         }
 
-        
-        public ActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            return View();
+            try
+            {
+                var makeDto = await _service.GetMakeByIdAsync(id);
+                if (makeDto == null)
+                {
+                    return NotFound();
+                }
+
+                var viewModel = _mapper.Map<VehicleMakeViewModel>(makeDto);
+                return View(viewModel);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the make for editing.");
+            }
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(VehicleMakeViewModel makeViewModel)
+        public async Task<IActionResult> Edit(int id, VehicleMakeViewModel makeViewModel)
         {
-            if (ModelState.IsValid)
-            {
-                
-                var makeDto = _mapper.Map<VehicleMakeDTO>(makeViewModel);
-
-                
-                await _service.UpdateMakeAsync(makeDto);
-
-                return RedirectToAction(nameof(Index)); 
-            }
-
-            return View(makeViewModel);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Delete(int id)
-        {
-            
-            var make = await _service.GetMakeByIdAsync(id);
-
-            if (make == null)
+            if (id != makeViewModel.Id)
             {
                 return NotFound();
             }
 
-            var makeViewModel = _mapper.Map<VehicleMakeViewModel>(make);
-            return View(makeViewModel);
+            if (!ModelState.IsValid)
+            {
+                return View(makeViewModel);
+            }
+
+            try
+            {
+                var makeDto = _mapper.Map<VehicleMakeDTO>(makeViewModel);
+                await _service.UpdateMakeAsync(makeDto);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the make.");
+            }
+        }
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var makeDto = await _service.GetMakeByIdAsync(id);
+                if (makeDto == null)
+                {
+                    return NotFound();
+                }
+
+                var viewModel = _mapper.Map<VehicleMakeViewModel>(makeDto);
+                return View(viewModel);
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the make for deletion.");
+            }
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var result = await _service.DeleteMakeAsync(id);
-
-            if (result)
+            try
             {
-                
-                return RedirectToAction("Index");
+                var success = await _service.DeleteMakeAsync(id);
+                return success ? RedirectToAction(nameof(Index)) : NotFound();
             }
-
-            
-            return NotFound();
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while deleting the make.");
+            }
         }
+
         #endregion
-        
+
+        #region Private Helpers
+
+        private void SetViewData(PagedResult<VehicleMakeDTO> result, string? sortOrder, string? searchString)
+        {
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["NameSortParam"] = sortOrder == "name" ? "name_desc" : "name";
+            ViewData["AbrvSortParam"] = sortOrder == "abrv" ? "abrv_desc" : "abrv";
+            ViewData["SearchString"] = searchString;
+            ViewData["CurrentPage"] = result.PageNumber;
+            ViewData["TotalPages"] = result.TotalPages;
+        }
+
+        #endregion
     }
 }
