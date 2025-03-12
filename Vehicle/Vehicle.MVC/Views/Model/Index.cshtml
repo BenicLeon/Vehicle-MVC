@@ -4,92 +4,118 @@
     ViewData["Title"] = "Vehicle Models";
 }
 
-<h2>Vehicle Models</h2>
-<a class="nav-link text-dark" asp-area="" asp-controller="Model" asp-action="Create">Create new Model</a>
-<form asp-action="Index" method="get">
-    <div class="form-group">
-        <label for="makeDropdown">Filter by Make:</label>
-        <select id="makeDropdown" name="makeId" class="form-control" onchange="this.form.submit()">
-            <option value="">-- All Makes --</option>
-            @foreach (var make in ViewData["Makes"] as SelectList)
-            {
-                <option value="@make.Value" selected="@(ViewData["MakeId"]?.ToString() == make.Value ? "selected" : null)">
-                    @make.Text
-                </option>
-            }
-        </select>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Vehicle Models</h2>
+        <a class="btn btn-success" asp-controller="Model" asp-action="Create">
+            <i class="bi bi-plus"></i> New Model
+        </a>
     </div>
 
-    <div class="form-group">
-        <label for="searchString">Search:</label>
-        <input type="text" id="searchString" name="searchString" value="@ViewData["SearchString"]" class="form-control" />
-        <button type="submit" class="btn btn-primary mt-2">Search</button>
-    </div>
-</form>
+    <form asp-action="Index" method="get" class="mb-4">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="makeDropdown" class="form-label">Filter by Make:</label>
+                <select id="makeDropdown" name="makeId" class="form-select"
+                        onchange="this.form.submit()">
+                    <option value="">-- All Makes --</option>
+                    @foreach (var make in ViewData["Makes"] as SelectList)
+                    {
+                        <option value="@make.Value"
+                                selected="@(ViewData["MakeId"]?.ToString() == make.Value ? "selected" : null)">
+                            @make.Text
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="searchString" class="form-label">Search:</label>
+                <div class="input-group">
+                    <input type="text" id="searchString" name="searchString"
+                           value="@ViewData["SearchString"]" class="form-control"
+                           placeholder="Search models..." />
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 
-<table class="table table-striped mt-3">
-    <thead>
-        <tr>
-            <th>
-                <a asp-action="Index"
-                   asp-route-sortOrder="@ViewData["NameSortParam"]"
-                   asp-route-searchString="@ViewData["SearchString"]"
-                   asp-route-makeId="@ViewData["MakeId"]">Model Name</a>
-            </th>
-            <th>
-                <a asp-action="Index"
-                   asp-route-sortOrder="@ViewData["AbrvSortParam"]"
-                   asp-route-searchString="@ViewData["SearchString"]"
-                   asp-route-makeId="@ViewData["MakeId"]">Abbreviation</a>
-            </th>
-            <th>Make</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model.Count == 0)
-        {
-            <tr>
-                <td colspan="4" class="text-center">No vehicle models found.</td>
-            </tr>
-        }
-        else
-        {
-            @foreach (var vehicleModel in Model)
-            {
+    <div class="card">
+        <table class="table table-hover mb-0">
+            <thead class="table-dark">
                 <tr>
-                    <td>@vehicleModel.Name</td>
-                    <td>@vehicleModel.Abrv</td>
-                    <td>@vehicleModel.MakeName</td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@vehicleModel.Id" class="btn btn-warning btn-sm">Edit</a>
-                        <a asp-action="Delete" asp-route-id="@vehicleModel.Id" class="btn btn-danger btn-sm">Delete</a>
-                    </td>
+                    <th>
+                        <a asp-action="Index"
+                           asp-route-sortOrder="@ViewData["NameSortParam"]"
+                           asp-route-searchString="@ViewData["SearchString"]"
+                           asp-route-makeId="@ViewData["MakeId"]"
+                           class="text-white text-decoration-none">Model Name</a>
+                    </th>
+                    <th>
+                        <a asp-action="Index"
+                           asp-route-sortOrder="@ViewData["AbrvSortParam"]"
+                           asp-route-searchString="@ViewData["SearchString"]"
+                           asp-route-makeId="@ViewData["MakeId"]"
+                           class="text-white text-decoration-none">Abbreviation</a>
+                    </th>
+                    <th>Make</th>
+                    <th class="text-end">Actions</th>
                 </tr>
-            }
-        }
-    </tbody>
-</table>
+            </thead>
+            <tbody>
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="4" class="text-center py-3">No vehicle models found.</td>
+                    </tr>
+                }
+                @foreach (var vehicleModel in Model)
+                {
+                    <tr>
+                        <td>@vehicleModel.Name</td>
+                        <td>@vehicleModel.Abrv</td>
+                        <td>@vehicleModel.MakeName</td>
+                        <td class="text-end">
+                            <a asp-action="Edit" asp-route-id="@vehicleModel.Id"
+                               class="btn btn-sm btn-warning me-1" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@vehicleModel.Id"
+                               class="btn btn-sm btn-danger" title="Delete"
+                               onclick="return confirm('Are you sure you want to delete this model?');">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 
-@{
-    var prevDisabled = (int)ViewData["CurrentPage"] == 1 ? "disabled" : "";
-    var nextDisabled = (int)ViewData["CurrentPage"] == (int)ViewData["TotalPages"] ? "disabled" : "";
-}
+    @{
+        var prevDisabled = (int)ViewData["CurrentPage"] == 1 ? "disabled" : "";
+        var nextDisabled = (int)ViewData["CurrentPage"] == (int)ViewData["TotalPages"] ? "disabled" : "";
+    }
 
-<div class="pagination mt-3">
-    <a asp-action="Index"
-       asp-route-pageNumber="@((int)ViewData["CurrentPage"] - 1)"
-       asp-route-sortOrder="@ViewData["CurrentSort"]"
-       asp-route-searchString="@ViewData["SearchString"]"
-       asp-route-makeId="@ViewData["MakeId"]"
-       class="btn btn-secondary @prevDisabled">Previous</a>
-
-    <span>Page @ViewData["CurrentPage"] of @ViewData["TotalPages"]</span>
-
-    <a asp-action="Index"
-       asp-route-pageNumber="@((int)ViewData["CurrentPage"] + 1)"
-       asp-route-sortOrder="@ViewData["CurrentSort"]"
-       asp-route-searchString="@ViewData["SearchString"]"
-       asp-route-makeId="@ViewData["MakeId"]"
-       class="btn btn-secondary @nextDisabled">Next</a>
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <a asp-action="Index"
+           asp-route-pageNumber="@((int)ViewData["CurrentPage"] - 1)"
+           asp-route-sortOrder="@ViewData["CurrentSort"]"
+           asp-route-searchString="@ViewData["SearchString"]"
+           asp-route-makeId="@ViewData["MakeId"]"
+           class="btn btn-outline-secondary @prevDisabled">
+            <i class="bi bi-chevron-left"></i> Previous
+        </a>
+        <span>Page @ViewData["CurrentPage"] of @ViewData["TotalPages"]</span>
+        <a asp-action="Index"
+           asp-route-pageNumber="@((int)ViewData["CurrentPage"] + 1)"
+           asp-route-sortOrder="@ViewData["CurrentSort"]"
+           asp-route-searchString="@ViewData["SearchString"]"
+           asp-route-makeId="@ViewData["MakeId"]"
+           class="btn btn-outline-secondary @nextDisabled">
+            Next <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
 </div>

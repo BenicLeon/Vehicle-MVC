@@ -1,30 +1,41 @@
 ﻿@model Vehicle.Common.ViewModels.VehicleMakeViewModel
 
-<h2>Delete Vehicle Make</h2>
+<div class="container mt-4">
+    <h2 class="mb-4">Delete Vehicle Make</h2>
 
-@if (Model == null)
-{
-    <p>The vehicle make could not be found.</p>
-}
-else
-{
-    <h3>Are you sure you want to delete the vehicle make "<strong>@Model.Name</strong>"?</h3>
+    @if (Model == null)
+    {
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            The vehicle make could not be found.
+        </div>
+    }
+    else
+    {
+        <div class="card p-4">
+            <h3 class="mb-4">Are you sure you want to delete "<strong>@Model.Name</strong>"?</h3>
 
-    <div class="form-group">
-        <label>Make Name</label>
-        <p>@Model.Name</p>
-    </div>
+            <dl class="row">
+                <dt class="col-sm-3 fw-bold">Make Name</dt>
+                <dd class="col-sm-9">@Model.Name</dd>
 
-    <div class="form-group">
-        <label>Abbreviation</label>
-        <p>@Model.Abrv</p>
-    </div>
+                <dt class="col-sm-3 fw-bold">Abbreviation</dt>
+                <dd class="col-sm-9">@Model.Abrv</dd>
+            </dl>
 
-    <form asp-action="Delete" method="post">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="id" value="@Model.Id" />
+            <form asp-action="Delete" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
 
-        <button type="submit" class="btn btn-danger">Delete</button>
-        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
-    </form>
-}
+                <div class="d-flex justify-content-start gap-2">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    }
+</div>
