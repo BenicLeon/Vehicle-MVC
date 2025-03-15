@@ -12,10 +12,10 @@ namespace Vehicle.Service.Models
         public int Id { get; set; }
 
         [Required, StringLength(100)]
-        public string? Name { get; set; }
+        public string Name { get; set; } = String.Empty;
 
         [StringLength(20)]
-        public string? Abrv {  get; set; }
+        public string Abrv {  get; set; } = String.Empty;
 
         public virtual List<VehicleModel> Vehicles { get; set; } = new List<VehicleModel>();
 

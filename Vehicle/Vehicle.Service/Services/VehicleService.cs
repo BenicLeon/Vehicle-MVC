@@ -10,20 +10,14 @@ using Vehicle.Service.Models;
 
 namespace Vehicle.Service.Services
 {
-    public class VehicleService : IVehicleService
+    public class VehicleService(VehicleDbContext context, IMapper mapper) : IVehicleService
     {
-        private readonly VehicleDbContext _context;
-        private readonly IMapper _mapper;
-
-        public VehicleService(VehicleDbContext context, IMapper mapper)
-        {
-            _context = context;
-            _mapper = mapper;
-        }
+        private readonly VehicleDbContext _context = context;
+        private readonly IMapper _mapper = mapper;
 
         #region Make CRUD
 
-        public async Task<PagedResult<VehicleMakeDTO>> GetMakesAsync(string searchString = null, string sortOrder = "name", int pageNumber = 1, int pageSize = 3)
+        public async Task<PagedResult<VehicleMakeDTO>> GetMakesAsync(string? searchString = null, string sortOrder = "name", int pageNumber = 1, int pageSize = 3)
         {
             var query = _context.VehicleMakes.AsQueryable();
 
@@ -64,7 +58,7 @@ namespace Vehicle.Service.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<VehicleMakeDTO> GetMakeByIdAsync(int id)
+        public async Task<VehicleMakeDTO?> GetMakeByIdAsync(int id)
         {
             var make = await _context.VehicleMakes.FindAsync(id);
             return make == null ? null : _mapper.Map<VehicleMakeDTO>(make);
@@ -79,7 +73,7 @@ namespace Vehicle.Service.Services
 
         #region Model CRUD
 
-        public async Task<PagedResult<VehicleModelDTO>> GetModelsAsync(int? makeId = null, string searchString = null, string sortOrder = "name", int pageNumber = 1, int pageSize = 3)
+        public async Task<PagedResult<VehicleModelDTO>> GetModelsAsync(int? makeId = null, string? searchString = null, string sortOrder = "name", int pageNumber = 1, int pageSize = 3)
         {
             var query = _context.VehicleModels.Include(m => m.Make).AsQueryable();
 
@@ -125,7 +119,7 @@ namespace Vehicle.Service.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<VehicleModelDTO> GetModelByIdAsync(int id)
+        public async Task<VehicleModelDTO?> GetModelByIdAsync(int id)
         {
             var model = await _context.VehicleModels.FindAsync(id);
             return model == null ? null : _mapper.Map<VehicleModelDTO>(model);

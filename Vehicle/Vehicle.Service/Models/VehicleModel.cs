@@ -16,12 +16,12 @@ namespace Vehicle.Service.Models
         public int MakeId { get; set; }
 
         [Required, StringLength(100)]
-        public string? Name { get; set; }
+        public string Name { get; set; } = String.Empty;
 
         [StringLength(20)]
-        public string? Abrv { get; set; }
+        public string Abrv { get; set; } = String.Empty;
 
-        public VehicleMake Make { get; set; }
+        public VehicleMake? Make { get; set; }
 
 
     }

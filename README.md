@@ -46,12 +46,22 @@ cd Vehicle
 ```bash
 dotnet restore
 ```
-5. Build the Solution
+5. Run migrations
+- in Vehicle.Service run:
+
+```bash
+dotnet ef database update
+```
+- "Could not execute" or "command not found"
+```bash
+dotnet tool install --global dotnet-ef
+```
+6. Build the Solution
 
 ```bash
 dotnet build
 ```
-6. Run the Application
+7. Run the Application
 - Set Vehicle.MVC as the startup project.
 - Run the application:
 
@@ -59,7 +69,7 @@ dotnet build
 dotnet run --project Vehicle.MVC --launch-profile https
 
 ```   
-7. Navigate to app
+8. Navigate to app
 - Navigate to https://localhost:7054
 
  

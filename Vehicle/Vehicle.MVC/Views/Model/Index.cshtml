@@ -98,8 +98,8 @@
     </div>
 
     @{
-        var currentPage = ViewData["CurrentPage"] != null ? (int)ViewData["CurrentPage"] : 1;
-        var totalPages = ViewData["TotalPages"] != null ? (int)ViewData["TotalPages"] : 1;
+        var totalPages = ViewData["TotalPages"] as int? ?? 1;
+        var currentPage = ViewData["CurrentPage"] as int? ?? 1;
         var previousDisabled = currentPage == 1 ? "disabled" : "";
         var nextDisabled = currentPage == totalPages ? "disabled" : "";
     }
