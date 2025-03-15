@@ -19,12 +19,15 @@
                 <select id="makeDropdown" name="makeId" class="form-select"
                         onchange="this.form.submit()">
                     <option value="">-- All Makes --</option>
-                    @foreach (var make in ViewData["Makes"] as SelectList)
+                    @if (ViewData["Makes"] is SelectList makes)
                     {
-                        <option value="@make.Value"
-                                selected="@(ViewData["MakeId"]?.ToString() == make.Value ? "selected" : null)">
-                            @make.Text
-                        </option>
+                        @foreach (var make in makes)
+                        {
+                            <option value="@make.Value"
+                                    selected="@(ViewData["MakeId"]?.ToString() == make.Value ? "selected" : null)">
+                                @make.Text
+                            </option>
+                        }
                     }
                 </select>
             </div>
@@ -32,7 +35,7 @@
                 <label for="searchString" class="form-label">Search:</label>
                 <div class="input-group">
                     <input type="text" id="searchString" name="searchString"
-                           value="@ViewData["SearchString"]" class="form-control"
+                           value="@(ViewData["SearchString"]?.ToString() ?? "")" class="form-control"
                            placeholder="Search models..." />
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-search"></i>
@@ -48,16 +51,16 @@
                 <tr>
                     <th>
                         <a asp-action="Index"
-                           asp-route-sortOrder="@ViewData["NameSortParam"]"
-                           asp-route-searchString="@ViewData["SearchString"]"
-                           asp-route-makeId="@ViewData["MakeId"]"
+                           asp-route-sortOrder="@(ViewData["NameSortParam"]?.ToString())"
+                           asp-route-searchString="@(ViewData["SearchString"]?.ToString() ?? "")"
+                           asp-route-makeId="@(ViewData["MakeId"]?.ToString())"
                            class="text-white text-decoration-none">Model Name</a>
                     </th>
                     <th>
                         <a asp-action="Index"
-                           asp-route-sortOrder="@ViewData["AbrvSortParam"]"
-                           asp-route-searchString="@ViewData["SearchString"]"
-                           asp-route-makeId="@ViewData["MakeId"]"
+                           asp-route-sortOrder="@(ViewData["AbrvSortParam"]?.ToString())"
+                           asp-route-searchString="@(ViewData["SearchString"]?.ToString() ?? "")"
+                           asp-route-makeId="@(ViewData["MakeId"]?.ToString())"
                            class="text-white text-decoration-none">Abbreviation</a>
                     </th>
                     <th>Make</th>
@@ -95,25 +98,27 @@
     </div>
 
     @{
-        var prevDisabled = (int)ViewData["CurrentPage"] == 1 ? "disabled" : "";
-        var nextDisabled = (int)ViewData["CurrentPage"] == (int)ViewData["TotalPages"] ? "disabled" : "";
+        var currentPage = ViewData["CurrentPage"] != null ? (int)ViewData["CurrentPage"] : 1;
+        var totalPages = ViewData["TotalPages"] != null ? (int)ViewData["TotalPages"] : 1;
+        var previousDisabled = currentPage == 1 ? "disabled" : "";
+        var nextDisabled = currentPage == totalPages ? "disabled" : "";
     }
 
     <div class="d-flex justify-content-between align-items-center mt-3">
         <a asp-action="Index"
-           asp-route-pageNumber="@((int)ViewData["CurrentPage"] - 1)"
-           asp-route-sortOrder="@ViewData["CurrentSort"]"
-           asp-route-searchString="@ViewData["SearchString"]"
-           asp-route-makeId="@ViewData["MakeId"]"
-           class="btn btn-outline-secondary @prevDisabled">
+           asp-route-pageNumber="@(currentPage - 1)"
+           asp-route-sortOrder="@(ViewData["CurrentSort"]?.ToString())"
+           asp-route-searchString="@(ViewData["SearchString"]?.ToString() ?? "")"
+           asp-route-makeId="@(ViewData["MakeId"]?.ToString())"
+           class="btn btn-outline-secondary @previousDisabled">
             <i class="bi bi-chevron-left"></i> Previous
         </a>
-        <span>Page @ViewData["CurrentPage"] of @ViewData["TotalPages"]</span>
+        <span>Page @currentPage of @totalPages</span>
         <a asp-action="Index"
-           asp-route-pageNumber="@((int)ViewData["CurrentPage"] + 1)"
-           asp-route-sortOrder="@ViewData["CurrentSort"]"
-           asp-route-searchString="@ViewData["SearchString"]"
-           asp-route-makeId="@ViewData["MakeId"]"
+           asp-route-pageNumber="@(currentPage + 1)"
+           asp-route-sortOrder="@(ViewData["CurrentSort"]?.ToString())"
+           asp-route-searchString="@(ViewData["SearchString"]?.ToString() ?? "")"
+           asp-route-makeId="@(ViewData["MakeId"]?.ToString())"
            class="btn btn-outline-secondary @nextDisabled">
             Next <i class="bi bi-chevron-right"></i>
         </a>

@@ -8,25 +8,19 @@ using Vehicle.Service.Services;
 
 namespace Vehicle.MVC.Controllers
 {
-    public class ModelController : Controller
+    public class ModelController(IVehicleService vehicleService, IMapper mapper) : Controller
     {
-        private readonly IVehicleService _service;
-        private readonly IMapper _mapper;
+        private readonly IVehicleService _service = vehicleService ?? throw new ArgumentNullException(nameof(vehicleService));
+        private readonly IMapper _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         private const int PageSize = 3;
-
-        public ModelController(IVehicleService vehicleService, IMapper mapper)
-        {
-            _service = vehicleService ?? throw new ArgumentNullException(nameof(vehicleService));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-        }
 
         #region Model CRUD
 
-        public async Task<IActionResult> Index(int? makeId, string? searchString, string sortOrder = "name", int pageNumber = 1)
+        public async Task<IActionResult> Index(int? makeId, string? searchString, string? sortOrder, int pageNumber = 1)
         {
             try
             {
-                var modelsResult = await _service.GetModelsAsync(makeId, searchString, sortOrder, pageNumber, PageSize);
+                var modelsResult = await _service.GetModelsAsync(makeId, searchString, sortOrder ?? "name", pageNumber, PageSize);
                 var makesResult = await _service.GetMakesAsync();
 
                 var viewModels = modelsResult.Items
@@ -40,7 +34,7 @@ namespace Vehicle.MVC.Controllers
                     })
                     .ToList();
 
-                SetViewData(modelsResult, sortOrder, searchString, makeId);
+                SetViewData(modelsResult, sortOrder ?? "name", searchString, makeId);
                 ViewData["Makes"] = new SelectList(makesResult.Items, "Id", "Name");
 
                 return View(viewModels);

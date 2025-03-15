@@ -56,9 +56,13 @@ dotnet build
 - Run the application:
 
 ```bash
-dotnet run --project Vehicle.MVC
+dotnet run --project Vehicle.MVC --launch-profile https
 
 ```   
+7. Navigate to app
+- Navigate to https://localhost:7054
+
+ 
 ## API Endpoints
 
 #### MakeController Endpoints

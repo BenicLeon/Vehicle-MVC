@@ -7,17 +7,11 @@ using Vehicle.Service.Services;
 
 namespace Vehicle.MVC.Controllers
 {
-    public class MakeController : Controller
+    public class MakeController(IVehicleService vehicleService, IMapper mapper) : Controller
     {
-        private readonly IVehicleService _service;
-        private readonly IMapper _mapper;
+        private readonly IVehicleService _service = vehicleService ?? throw new ArgumentNullException(nameof(vehicleService));
+        private readonly IMapper _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         private const int PageSize = 3;
-
-        public MakeController(IVehicleService vehicleService, IMapper mapper)
-        {
-            _service = vehicleService ?? throw new ArgumentNullException(nameof(vehicleService));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-        }
 
         #region Make CRUD
 
@@ -25,7 +19,7 @@ namespace Vehicle.MVC.Controllers
         {
             try
             {
-                var result = await _service.GetMakesAsync(searchString, sortOrder, pageNumber, PageSize);
+                var result = await _service.GetMakesAsync(searchString, sortOrder ?? "name", pageNumber, PageSize);
                 var viewModels = _mapper.Map<List<VehicleMakeViewModel>>(result.Items);
 
                 SetViewData(result, sortOrder, searchString);
