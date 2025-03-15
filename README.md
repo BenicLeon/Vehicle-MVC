@@ -56,9 +56,10 @@ dotnet ef database update
 ```bash
 dotnet tool install --global dotnet-ef
 ```
-6. Build the Solution
+6. Build the Solution - in Vehicle folder
 
 ```bash
+
 dotnet build
 ```
 7. Run the Application
